@@ -9,15 +9,6 @@ const list = document.getElementById('todo-list')
 const itemCountSpan = document.getElementById('item-count')
 const uncheckedCountSpan = document.getElementById('unchecked-count')
 
-let todos = [{
-  id: 991, text: "task 1", check: true
-},
-{ id: 992, text: "task 2", check: false },
-{ id: 993, text: "task 3", check: true }];
-
-if (todos.length != 0) {
-  render();
-}
 let id = 0;
 
 //<li>
@@ -25,6 +16,8 @@ let id = 0;
 //  <button>delete</button>
 //  <span>text</span>
 //</li>
+
+
 
 class Todo {
   constructor() {
@@ -37,20 +30,60 @@ class Todo {
   }
 }
 
+
+
+getTodos = function() {
+  let todos;
+
+  try {
+    todos = localStorage.getItem('todos');
+    todos = JSON.parse(todos);
+    
+    if (todos.length > 0) {
+      id = todos[todos.length - 1].id;
+    }
+  } catch (error) {
+    todos = new Array();
+  }
+
+  if (todos === null || Array.isArray(todos) == false) {
+    todos = new Array();
+  }
+
+  return todos;
+}
+
+setTodos = function(todos) {
+  localStorage.setItem('todos', JSON.stringify(todos));
+}
+
+pushTodos = function(todo) {
+  let todos = getTodos();
+  todos.push(todo);
+  setTodos(todos);
+}
+
+
+
+if (getTodos().length != 0) {
+  render();
+}
+
+
+
 function newTodo() {
   // get text
   const todo = new Todo();
-  todos.push(todo);
+  pushTodos(todo);
   render();
 }
 
 function render() {
   list.innerHTML = '';
-  todos.map(createTodo).forEach(todo => list.appendChild(todo));
-  // uptade counts
-  itemCountSpan.textContent = todos.length;
-  uncheckedCountSpan.textContent = todos.filter(todo => !todo.check).length;
-
+  getTodos().map(createTodo).forEach(todo => list.appendChild(todo));
+  // update counts
+  itemCountSpan.textContent = getTodos().length;
+  uncheckedCountSpan.textContent = getTodos().filter(todo => !todo.check).length;
 }
 
 function createTodo(todo) {
@@ -69,7 +102,8 @@ function createTodo(todo) {
 }
 
 function deleteTodo(id) {
-  todos = todos.filter(todo => todo.id !== id);
+  let todos = getTodos();
+  setTodos(todos.filter(todo => todo.id !== id));
   render();
 }
 
@@ -86,11 +120,14 @@ function changeTodo(id) {
  //   text: todo.text, 
  //   check: !todo.check
  // } : todo);
-
-  todos =todos.map(todo => todo.id == id ?{
+  let todos = getTodos();
+  todos = todos.map(todo => todo.id == id ?
+    {
     ... todo,
     check: !todo.check
   } : todo);
+
+  setTodos(todos);
   
   uncheckedCountSpan.textContent = todos.filter(todo => !todo.check).length;
 }
